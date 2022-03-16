@@ -191,4 +191,5 @@ verifyProof h (MerkleProof a p) =
                 pairHashGen hx xx = hash (hx, xx)
         cumHash hh [] = hh
 
+
 -- { Part B End } --
