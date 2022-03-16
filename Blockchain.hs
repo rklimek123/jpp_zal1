@@ -147,7 +147,24 @@ validateReceipt r hdr = txrBlock r == hash hdr
                         && verifyProof (txroot hdr) (txrProof r)
 
 mineTransactions :: Miner -> Hash -> [Transaction] -> (Block, [TransactionReceipt])
-mineTransactions miner parent txs = undefined
+mineTransactions miner parent txs =
+  (block, receipts)
+  where
+    block = mineBlock miner parent txs
+    hdr = blockHdr block
+    blockTree = buildTree $ (coinbase hdr):txs
+
+    receipts =
+      map makeReceipt txs
+
+    makeReceipt t = TxReceipt
+      {
+        txrBlock = hash block
+      , txrProof = fromMaybe defMP $ buildProof t blockTree
+      }
+    
+    defMP =
+      error "The MerkleProof is false, but it should always pass."
 
 {- | Pretty printing
 >>> runShows $ pprBlock block2
