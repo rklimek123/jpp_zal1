@@ -58,17 +58,25 @@ buildTree :: Hashable a => [a] -> Tree a
 buildTree l =
     head $ rec_aux (map leaf l)
     where
-        aux (x:y:xs) =
-            (node x y):(aux xs)
-        aux [x] =
-            [twig x]
-        aux [] = []
+        aux (x:y:xs) _ =
+            (node x y):(aux xs True)
+        
+        -- The second parameter indicates,
+        -- whether the call to aux is recursive.
+        -- It then should treat the element as
+        -- a last element in list, therefore duplicating it.
+        -- Otherwise, it should treat it as the only element
+        -- in the list, which makes it the root.
+        aux [x] recursive
+            | recursive = [twig x]
+            | otherwise = [x]
+        aux [] _ = []
         
         rec_aux l
             | length res == 1 = res
             | otherwise = rec_aux res
           where
-              res = aux l
+              res = aux l False
 
 
 treeHash :: Tree a -> Hash
@@ -121,9 +129,8 @@ data MerkleProof a = MerkleProof a MerklePath
 
 instance Show a => Show (MerkleProof a) where
     showsPrec _ (MerkleProof x p) =
-        showParen True $
         (showString "MerkleProof ")
-        .(shows x)
+        .(showParen True $ shows x)
         .(showString " ")
         .(showString.showMerklePath $ p)
 
